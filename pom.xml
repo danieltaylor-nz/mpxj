@@ -7,11 +7,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.sf.mpxj</groupId>
 	<artifactId>mpxj</artifactId>
-	<version>14.3.5</version>
+	<version>14.5.2</version>
 	<name>MPXJ</name>
 	<url>http://mpxj.org</url>
 
-	<description>MPXJ is a library which allows you to read, manipulate, and write project information from Java, .Net, Python and Ruby. MPXJ supports a range of data formats: Microsoft Project Exchange (MPX), Microsoft Project (MPP, MPT), Microsoft Project Data Interchange (MSPDI XML), Microsoft Project Database (MPD), Planner (XML), Primavera P6 (PMXML, XER, and database), Primavera P3, Primavera Suretrak, Asta Powerproject (PP, MDB), Asta Easyplan (PP), Phoenix Project Manager (PPX), FastTrack Schedule (FTS), Ganttproject (GAN), Turboproject (PEP), Conceptdraw PROJECT (CDPX, CDPZ, CDPTZ), Synchro Scheduler (SP) Gantt Designer (GNT), Standard Data Exchange Format (SDEF), Project Commander (PC), Deltek Open Plan (BK3), and Edraw Project (EDPX).</description>
+	<description>MPXJ is a library which allows you to read, manipulate, and write project information from Java, .Net, Python and Ruby. MPXJ supports a range of data formats: Microsoft Project Exchange (MPX), Microsoft Project (MPP, MPT), Microsoft Project Data Interchange (MSPDI XML), Microsoft Project Database (MPD), Planner (XML), Primavera P6 (PMXML, XER, and database), Primavera P3, Primavera Suretrak, Asta Powerproject (PP, MDB), Asta Easyplan (PP), Phoenix Project Manager (PPX), FastTrack Schedule (FTS), Ganttproject (GAN), Turboproject (PEP), Conceptdraw PROJECT (CDPX, CDPZ, CDPTZ), Synchro Scheduler (SP) Gantt Designer (GNT), Standard Data Exchange Format (SDEF), Project Commander (PC), Deltek Open Plan (BK3), and Edraw Project (EDPX). MPXJ can also read project data from Microsoft Project Server, Primavera P6 Web Services (P6 EPPM), and Oracle Primavera Cloud (OPC).</description>
 
 	<organization>
 		<name>MPXJ</name>
@@ -80,6 +80,13 @@
 			<artifactId>jackson-databind</artifactId>
 			<version>2.19.1</version>
 		</dependency>
+
+        <!-- Used to update a dependency of Jackcess to avoid a vulnerability. Can be removed when Jackcess is updated. -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.19.0</version>
+        </dependency>
 
 		<!-- Test dependencies -->
 		<dependency>

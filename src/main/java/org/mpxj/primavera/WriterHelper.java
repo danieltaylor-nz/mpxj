@@ -25,6 +25,7 @@ package org.mpxj.primavera;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.mpxj.Code;
 import org.mpxj.Duration;
 import org.mpxj.ProjectProperties;
 import org.mpxj.Resource;
@@ -71,7 +72,7 @@ class WriterHelper
     */
    public static String getActivityID(Task task)
    {
-      return task.getActivityID() == null ? task.getWBS() : task.getActivityID();
+      return task.getActivityID() == null || task.getActivityID().trim().isEmpty() ? task.getWBS() : task.getActivityID();
    }
 
    /**
@@ -113,6 +114,19 @@ class WriterHelper
       return assignment.getResource() != null && task != null && task.getUniqueID().intValue() != 0 && !task.getSummary();
    }
 
+   /**
+    * Retrieve the max length value for a code, or generate an appropriate value.
+    *
+    * @param code code definition
+    * @return max length value
+    */
+   public static Integer getCodeMaxLength(Code code)
+   {
+      Integer maxLength = code.getMaxLength();
+      return maxLength == null ? code.getValues().stream().map(v -> Integer.valueOf(v.getName().length())).max(Integer::compareTo).orElse(DEFAULT_CODE_MAX_LENGTH) : maxLength;
+   }
+
    private static final String RESOURCE_ID_PREFIX = "RESOURCE-";
    private static final String ROLE_ID_PREFIX = "ROLE-";
+   private static final Integer DEFAULT_CODE_MAX_LENGTH = Integer.valueOf(7);
 }

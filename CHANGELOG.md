@@ -5,7 +5,27 @@ From version 14.0.0 onwards the `net.sf.mpxj`, `net.sf.mpxj-for-csharp` and `net
 no longer distributed. Please use the `MPXJ.Net` package instead.
 
 
-## 14.4.0 (unreleased)
+## 14.6.0 (unreleased)
+
+## 14.5.2 (2025-10-22)
+* Fix an issue reading secondary constraint dates and finish constraint dates from Open Plan BK3 files.
+* Update the Jackcess dependency Commons Lang 3 to a version not affected by CVE-2025-48924.
+
+## 14.5.1 (2025-10-07)
+* Ensure that project listeners work in MPXJ.Net when using the ProjectReaderProxy from UniversalProjectReader.
+* Minor PrimaveraScheduler improvements.
+
+## 14.5.0 (2025-10-01)
+* Implemented support for reading and exporting projects using Primavera P6 Web Services (p6ws). Among other things this could be used to access projects managed by Primavera P6 EPPM.
+* Add Free Slack calculation to the Task class.
+* Ensure that the PrimaveraScheduler updates resource assignment dates.
+* Handle blank Activity ID values when writing XER and PMXML files.
+* Ensure that all Activity, Project, Resource Assignment, Resource and Role Code definitions in XER and PMXML files include a maximum length.
+
+## 14.4.0 (2025-09-16)
+* Implemented support for reading projects from Microsoft Project Server (also known as Project Online, Project Web Access or PWA).
+* Improve handling of different date formats read from BK3 files.
+* Adjust handling of the Mandatory Start constraint on in progress tasks in the PrimaveraScheduler.
 
 ## 14.3.5 (2025-08-26)
 * When reading XER files and P6 databases, ensure that project-specific calendars are only attached to the project to which they relate.

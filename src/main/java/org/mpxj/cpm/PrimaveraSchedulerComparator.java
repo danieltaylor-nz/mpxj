@@ -30,8 +30,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.mpxj.AssignmentField;
 import org.mpxj.ProjectCalendar;
 import org.mpxj.ProjectFile;
+import org.mpxj.ResourceAssignment;
 import org.mpxj.Task;
 import org.mpxj.TaskField;
 import org.mpxj.reader.UniversalProjectReader;
@@ -112,13 +114,23 @@ public class PrimaveraSchedulerComparator
    }
 
    /**
-    * Tell the comparator not to test the WBS in these file.
+    * Tell the comparator not to test the WBS in these files.
     *
     * @param value set of excluded files
     */
    public void setNoWbsTest(Set<String> value)
    {
       m_noWbsTest = value;
+   }
+
+   /**
+    * Tell the comparator not to test resource assignments in these files.
+    *
+    * @param value set of excluded files
+    */
+   public void setNoResourceAssignmentTest(Set<String> value)
+   {
+      m_noResourceAssignmentTest = value;
    }
 
    /**
@@ -187,10 +199,10 @@ public class PrimaveraSchedulerComparator
    }
 
    /**
-    * Compare an individual file.
+    * Compare a single file.
     *
     * @param file file to compare
-    * @return true if the files compare successfully
+    * @return true if compared successfully
     */
    public boolean process(File file) throws Exception
    {
@@ -199,24 +211,20 @@ public class PrimaveraSchedulerComparator
          System.out.print("Processing " + file + " ... ");
       }
 
-      m_forwardErrorCount = 0;
-      m_backwardErrorCount = 0;
-      boolean analyseWbs = true;
-
-      m_baselineFile = new UniversalProjectReader().read(file);
-      m_workingFile = new UniversalProjectReader().read(file);
+      ProjectFile baselineFile = new UniversalProjectReader().read(file);
+      ProjectFile workingFile = new UniversalProjectReader().read(file);
 
       PrimaveraScheduler scheduler = new PrimaveraScheduler();
 
       try
       {
-         LocalDateTime start = m_workingFile.getProjectProperties().getPlannedStart();
+         LocalDateTime start = workingFile.getProjectProperties().getPlannedStart();
          if (start == null)
          {
-            start = m_workingFile.getProjectProperties().getStartDate();
+            start = workingFile.getProjectProperties().getStartDate();
          }
 
-         scheduler.schedule(m_workingFile, start);
+         scheduler.schedule(workingFile, start);
       }
 
       catch (CpmException ex)
@@ -229,20 +237,46 @@ public class PrimaveraSchedulerComparator
          return false;
       }
 
-      for (Task baselineTask : m_baselineFile.getTasks())
-      {
-         Task workingTask = m_workingFile.getTaskByUniqueID(baselineTask.getUniqueID());
+      String fileName = file.getName().toLowerCase();
+      return process(baselineFile, workingFile, !m_noWbsTest.contains(fileName), !m_noResourceAssignmentTest.contains(fileName));
+   }
 
-         if (workingTask.getSummary() && m_noWbsTest.contains(file.getName().toLowerCase()))
+   /**
+    * Compare two ProjectFile instances.
+    *
+    * @param baselineFile baseline project
+    * @param workingFile working project
+    * @param analyseWbs true if the WBS should be analysed
+    * @param analyseResourceAssignments true if resource assignments should be analysed
+    * @return true if compared successfully
+    */
+   public boolean process(ProjectFile baselineFile, ProjectFile workingFile, boolean analyseWbs, boolean analyseResourceAssignments) throws Exception
+   {
+      m_forwardErrorCount = 0;
+      m_backwardErrorCount = 0;
+      m_assignmentErrorCount = 0;
+
+      for (Task baselineTask : baselineFile.getTasks())
+      {
+         Task workingTask = workingFile.getTaskByUniqueID(baselineTask.getUniqueID());
+         if (workingTask.getSummary() && !analyseWbs)
          {
-            analyseWbs = false;
             continue;
          }
 
          compare(baselineTask, workingTask);
+
+         if (analyseResourceAssignments)
+         {
+            for (ResourceAssignment baselineAssignment : baselineTask.getResourceAssignments())
+            {
+               ResourceAssignment workingAssignment = workingFile.getResourceAssignments().getByUniqueID(baselineAssignment.getUniqueID());
+               compare(baselineAssignment, workingAssignment);
+            }
+         }
       }
 
-      if (m_forwardErrorCount == 0 && m_backwardErrorCount == 0)
+      if (m_forwardErrorCount == 0 && m_backwardErrorCount == 0 && m_assignmentErrorCount == 0)
       {
          if (m_debug)
          {
@@ -254,15 +288,16 @@ public class PrimaveraSchedulerComparator
       if (m_debug)
       {
          System.out.println("failed.");
-         System.out.println("Project ID: " + m_baselineFile.getProjectProperties().getProjectID());
-         System.out.println(m_baselineFile.getProjectProperties().getSchedulingProgressedActivities());
+         System.out.println("Project ID: " + baselineFile.getProjectProperties().getProjectID());
+         System.out.println(baselineFile.getProjectProperties().getSchedulingProgressedActivities());
          System.out.println("Forward errors: " + m_forwardErrorCount);
          System.out.println("Backward errors: " + m_backwardErrorCount);
+         System.out.println("Assignment errors: " + m_assignmentErrorCount);
       }
 
       if (!m_directory && m_debug)
       {
-         analyseFailures(analyseWbs);
+         analyseFailures(baselineFile, workingFile, analyseWbs);
          System.out.println("DONE");
       }
 
@@ -347,27 +382,29 @@ public class PrimaveraSchedulerComparator
    /**
     * Write debug output to show where the two project differ.
     *
+    * @param baselineFile baseline for comparison
+    * @param workingFile working file for comparison
     * @param analyseWbs true if the WBS should be compared
     */
-   private void analyseFailures(boolean analyseWbs) throws CycleException
+   private void analyseFailures(ProjectFile baselineFile, ProjectFile workingFile, boolean analyseWbs) throws CycleException
    {
-      List<Task> activities = new DepthFirstGraphSort(m_workingFile, PrimaveraScheduler::isActivity).sort();
-      List<Task> levelOfEffortActivities = new DepthFirstGraphSort(m_workingFile, PrimaveraScheduler::isLevelOfEffortActivity).sort();
-      List<Task> wbsSummaryActivities = new DepthFirstGraphSort(m_workingFile, PrimaveraScheduler::isWbsSummary).sort();
-      List<Task> wbs = m_workingFile.getTasks().stream().filter(Task::getSummary).collect(Collectors.toList());
+      List<Task> activities = new DepthFirstGraphSort(workingFile, PrimaveraScheduler::isActivity).sort();
+      List<Task> levelOfEffortActivities = new DepthFirstGraphSort(workingFile, PrimaveraScheduler::isLevelOfEffortActivity).sort();
+      List<Task> wbsSummaryActivities = new DepthFirstGraphSort(workingFile, PrimaveraScheduler::isWbsSummary).sort();
+      List<Task> wbs = workingFile.getTasks().stream().filter(Task::getSummary).collect(Collectors.toList());
 
       // Sort so we can see errors at the bottom first, as these are rolled up.
       Collections.reverse(wbs);
 
       if (m_forwardErrorCount != 0)
       {
-         activities.forEach(this::analyseForwardError);
-         levelOfEffortActivities.forEach(this::analyseForwardError);
-         wbsSummaryActivities.forEach(this::analyseForwardError);
+         activities.forEach(a -> analyseForwardError(baselineFile, a));
+         levelOfEffortActivities.forEach(a -> analyseForwardError(baselineFile, a));
+         wbsSummaryActivities.forEach(a -> analyseForwardError(baselineFile, a));
 
          if (analyseWbs)
          {
-            wbs.forEach(this::analyseForwardError);
+            wbs.forEach(a -> analyseForwardError(baselineFile, a));
          }
       }
 
@@ -375,13 +412,13 @@ public class PrimaveraSchedulerComparator
       {
          Collections.reverse(activities);
          Collections.reverse(levelOfEffortActivities);
-         activities.forEach(this::analyseBackwardError);
-         levelOfEffortActivities.forEach(this::analyseBackwardError);
-         wbsSummaryActivities.forEach(this::analyseBackwardError);
+         activities.forEach(a -> analyseBackwardError(baselineFile, a));
+         levelOfEffortActivities.forEach(a -> analyseBackwardError(baselineFile, a));
+         wbsSummaryActivities.forEach(a -> analyseBackwardError(baselineFile, a));
 
          if (analyseWbs)
          {
-            wbs.forEach(this::analyseBackwardError);
+            wbs.forEach(a -> analyseBackwardError(baselineFile, a));
          }
       }
    }
@@ -389,11 +426,12 @@ public class PrimaveraSchedulerComparator
    /**
     * Write debug information for a forward pass error.
     *
+    * @param baselineFile baseline for comparison
     * @param working scheduled task
     */
-   private void analyseForwardError(Task working)
+   private void analyseForwardError(ProjectFile baselineFile, Task working)
    {
-      Task baseline = m_baselineFile.getTaskByUniqueID(working.getUniqueID());
+      Task baseline = baselineFile.getTaskByUniqueID(working.getUniqueID());
       boolean earlyStartFail = !compareDates(baseline, working, TaskField.EARLY_START);
       boolean earlyFinishFail = !compareDates(baseline, working, TaskField.EARLY_FINISH);
       boolean startFail = !compareDates(baseline, working, TaskField.START);
@@ -418,11 +456,12 @@ public class PrimaveraSchedulerComparator
    /**
     * Write debug information for a backward pass error.
     *
+    * @param baselineFile baseline for comparison
     * @param working scheduled task
     */
-   private void analyseBackwardError(Task working)
+   private void analyseBackwardError(ProjectFile baselineFile, Task working)
    {
-      Task baseline = m_baselineFile.getTaskByUniqueID(working.getUniqueID());
+      Task baseline = baselineFile.getTaskByUniqueID(working.getUniqueID());
       boolean lateStartFail = !compareDates(baseline, working, TaskField.LATE_START);
       boolean lateFinishFail = !compareDates(baseline, working, TaskField.LATE_FINISH);
       boolean remainingLateStartFail = !compareDates(baseline, working, TaskField.REMAINING_LATE_START);
@@ -452,14 +491,69 @@ public class PrimaveraSchedulerComparator
       return result;
    }
 
+   /**
+    * Compare two resource assignments.
+    *
+    * @param baseline baseline resource assignment
+    * @param working working resource assignment
+    */
+   private void compare(ResourceAssignment baseline, ResourceAssignment working)
+   {
+      boolean startFailed = !compareDates(baseline, working, AssignmentField.START);
+      boolean finishFailed = !compareDates(baseline, working, AssignmentField.FINISH);
+      boolean actualStartFailed = !compareDates(baseline, working, AssignmentField.ACTUAL_START);
+      boolean actualFinishFailed = !compareDates(baseline, working, AssignmentField.ACTUAL_FINISH);
+      boolean remainingEarlyStartFailed = !compareDates(baseline, working, AssignmentField.REMAINING_EARLY_START);
+      boolean remainingEarlyFinishFailed = !compareDates(baseline, working, AssignmentField.REMAINING_EARLY_FINISH);
+      boolean remainingLateStartFailed = !compareDates(baseline, working, AssignmentField.REMAINING_LATE_START);
+      boolean remainingLateFinishFailed = !compareDates(baseline, working, AssignmentField.REMAINING_LATE_FINISH);
+
+      if (startFailed || finishFailed || actualStartFailed || actualFinishFailed || remainingEarlyStartFailed || remainingEarlyFinishFailed || remainingLateStartFailed || remainingLateFinishFailed)
+      {
+         ++m_assignmentErrorCount;
+      }
+   }
+
+   /**
+    * Compare two dates from a resource assignment.
+    *
+    * @param baseline baseline resource assignment
+    * @param working scheduled resource assignment
+    * @param field field containing the dates to compare
+    * @return true if the comparison is successful
+    */
+   private boolean compareDates(ResourceAssignment baseline, ResourceAssignment working, AssignmentField field)
+   {
+      LocalDateTime baselineDate = (LocalDateTime) baseline.get(field);
+      if (baselineDate == null)
+      {
+         // We have XER files where some of the attributes we'd expect to be populated are not present. Skip these.
+         return true;
+      }
+
+      LocalDateTime workingDate = (LocalDateTime) working.get(field);
+      if (workingDate == null)
+      {
+         return false;
+      }
+
+      if (baselineDate.isEqual(workingDate))
+      {
+         return true;
+      }
+
+      ProjectCalendar calendar = baseline.getEffectiveCalendar();
+      return calendar.getNextWorkStart(workingDate).isEqual(baselineDate) || calendar.getNextWorkStart(baselineDate).isEqual(workingDate);
+   }
+
    private boolean m_debug;
    private boolean m_directory;
-   private ProjectFile m_baselineFile;
-   private ProjectFile m_workingFile;
    private int m_forwardErrorCount;
    private int m_backwardErrorCount;
+   private int m_assignmentErrorCount;
    private Set<String> m_unreadableFiles = Collections.emptySet();
    private Set<String> m_useScheduled = Collections.emptySet();
    private Set<String> m_excluded = Collections.emptySet();
    private Set<String> m_noWbsTest = Collections.emptySet();
+   private Set<String> m_noResourceAssignmentTest = Collections.emptySet();
 }
