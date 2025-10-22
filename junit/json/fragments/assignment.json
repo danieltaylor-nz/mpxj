@@ -1,0 +1,38 @@
+{
+    "unique_id": 117,
+    "task_unique_id": 1,
+    "resource_unique_id": 5,
+    "assignment_units": 100.0,
+    "remaining_assignment_units": 100.0,
+    "work": {
+        "duration": 40.0,
+        "units": "HOURS"
+    },
+    "actual_work": {
+        "duration": 24.0,
+        "units": "HOURS"
+    },
+    "remaining_work": {
+        "duration": 16.0,
+        "units": "HOURS"
+    },
+    "baseline_work": {
+        "duration": 42.0,
+        "units": "HOURS"
+    },
+    "start": "2024-01-01T09:00:00",
+    "finish": "2024-01-05T17:00:00",
+    "actual_start": "2024-01-01T09:00:00",
+    "actual_finish": "2024-01-04T17:00:00",
+    "baseline_start": "2024-01-01T09:00:00",
+    "baseline_finish": "2024-01-05T17:00:00",
+    "actual_cost": 9600.0,
+    "baseline_cost": 10080.0,
+    "work_contour": "CONTOURED",
+    "percent_work_complete": 100.0,
+    "work_variance": -28800,
+    "finish_variance": -86400,
+    "rate_source": "RESOURCE",
+    "calculate_costs_from_units": true,
+    "variable_rate_units": "DAYS"
+}

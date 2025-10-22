@@ -1,0 +1,27 @@
+{
+    "unique_id": 2,
+    "name": "Follow-up Task",
+    "duration": {
+        "duration": 3.0,
+        "units": "DAYS"
+    },
+    "start": "2024-01-09T09:00:00",
+    "finish": "2024-01-12T17:00:00",
+    "type": "FIXED_DURATION",
+    "mode": "AUTO_SCHEDULED",
+    "constraint_type": "AS_SOON_AS_POSSIBLE",
+    "priority": "NORMAL",
+    "active": true,
+    "summary": false,
+    "critical": false,
+    "predecessors": [
+        {
+            "unique_id": 1,
+            "type": "FINISH_START",
+            "lag": {
+                "duration": 0.0,
+                "units": "DAYS"
+            }
+        }
+    ]
+}

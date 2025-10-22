@@ -1,0 +1,68 @@
+{
+    "unique_id": 1,
+    "name": "Test Calendar",
+    "type": "GLOBAL",
+    "monday": {
+        "type": "working",
+        "hours": [
+            {
+                "from": "09:00",
+                "to": "17:00"
+            }
+        ]
+    },
+    "tuesday": {
+        "type": "working",
+        "hours": [
+            {
+                "from": "09:00",
+                "to": "17:00"
+            }
+        ]
+    },
+    "wednesday": {
+        "type": "working",
+        "hours": [
+            {
+                "from": "09:00",
+                "to": "17:00"
+            }
+        ]
+    },
+    "thursday": {
+        "type": "working",
+        "hours": [
+            {
+                "from": "09:00",
+                "to": "17:00"
+            }
+        ]
+    },
+    "friday": {
+        "type": "working",
+        "hours": [
+            {
+                "from": "09:00",
+                "to": "17:00"
+            }
+        ]
+    },
+    "saturday": {
+        "type": "non_working"
+    },
+    "sunday": {
+        "type": "non_working"
+    },
+    "exceptions": [
+        {
+            "from": "2024-01-02",
+            "to": "2024-01-02",
+            "type": "non_working"
+        },
+        {
+            "from": "2024-01-10",
+            "to": "2024-01-10",
+            "type": "non_working"
+        }
+    ]
+}

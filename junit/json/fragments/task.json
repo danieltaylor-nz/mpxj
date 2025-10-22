@@ -1,0 +1,27 @@
+{
+    "unique_id": 1,
+    "name": "Sample Task",
+    "duration": {
+        "duration": 5.0,
+        "units": "DAYS"
+    },
+    "start": "2024-01-01T09:00:00",
+    "finish": "2024-01-08T17:00:00",
+    "actual_start": "2024-01-01T09:00:00",
+    "actual_duration": {
+        "duration": 3.0,
+        "units": "DAYS"
+    },
+    "remaining_duration": {
+        "duration": 2.0,
+        "units": "DAYS"
+    },
+    "percentage_complete": 60.0,
+    "type": "FIXED_DURATION",
+    "mode": "AUTO_SCHEDULED",
+    "constraint_type": "AS_SOON_AS_POSSIBLE",
+    "priority": "NORMAL",
+    "active": true,
+    "summary": false,
+    "critical": false
+}

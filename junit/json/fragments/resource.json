@@ -1,0 +1,40 @@
+{
+    "unique_id": 5,
+    "id": 1,
+    "name": "John Doe",
+    "initials": "JD",
+    "group": "Engineering Department",
+    "type": "WORK",
+    "max_units": 100.0,
+    "default_units": 100.0,
+    "active": true,
+    "email_address": "john.doe@example.com",
+    "accrue_at": "PRORATED",
+    "booking_type": "COMMITTED",
+    "calculate_costs_from_units": true,
+    "calendar_unique_id": 1,
+    "standard_rate": "480.0/d",
+    "start": "2024-01-01T08:00:00",
+    "finish": "2024-12-31T17:00:00",
+    "outline_code1": "OPS",
+    "outline_code2": "USA",
+    "outline_code3": "FTIC",
+    "outline_code4": "Plant A",
+    "cost_rate_tables": {
+        "0": [
+            {
+                "start_date": "2024-01-01T00:00:00",
+                "rates": {
+                    "0": "480.0/d"
+                }
+            }
+        ]
+    },
+    "availability_table": [
+        {
+            "start": "2024-01-01T00:00:00",
+            "end": "2024-12-31T23:59:00",
+            "units": 100.0
+        }
+    ]
+}
